@@ -1,12 +1,19 @@
-import os
 import sys
-from PyQt5.QtWidgets import (QWidget, QPushButton, QApplication, QMessageBox, QDesktopWidget, QLabel, QLineEdit,
-                             QComboBox, QFileDialog, QAction, QMainWindow, QVBoxLayout, QHBoxLayout, QSplitter)
-from PyQt5.QtCore import QCoreApplication, Qt
+from PyQt5.QtWidgets import (QPushButton, QApplication, QMessageBox, QDesktopWidget, QLabel,
+                             QComboBox, QFileDialog,  QMainWindow,  QHBoxLayout,)
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import *
 from slice import SliceXLS
 from logger_config import get_logger
 log = get_logger('logger_main')
+
+StyleSheet = '''
+#BlueProgressBar {
+    border: 2px solid #2196F3;
+    border-radius: 5px;
+    background-color: #E0E0E0;
+}
+'''
 
 
 class SliceWindow(QMainWindow):
@@ -18,6 +25,7 @@ class SliceWindow(QMainWindow):
         self.xls_file = None
         self.selected_sheet = ''
         self.selected_column = ''
+        self.destination_dir = ''
 
 
     def initUI(self):
@@ -68,11 +76,6 @@ class SliceWindow(QMainWindow):
         self.list_column.move(50, 180)
         self.list_column.activated[str].connect(self.select_column)
 
-        # splitter2 = QSplitter(Qt.Vertical)
-        # splitter2.addWidget(self.btn_source_file)
-        # splitter2.addWidget(self.label_file)
-
-
         self.show()
 
     def center(self):
@@ -87,12 +90,10 @@ class SliceWindow(QMainWindow):
         self.label_file.setText(self.file_name)
         self.xls_file = SliceXLS(self.file_name)
         self.combobox_sheets()
-        print(self.file_name)
 
     def get_destination(self):
-            self.dir_name = QFileDialog.getExistingDirectory(None, "Select Folder")
-            self.label_dir.setText(self.dir_name)
-            print(self.dir_name)
+        self.destination_dir = QFileDialog.getExistingDirectory(None, "Select Folder")
+        self.label_dir.setText(self.destination_dir)
 
     def combobox_sheets(self):
         self.list_sheets.clear()
@@ -104,16 +105,16 @@ class SliceWindow(QMainWindow):
         column_names = self.xls_file.read_data(sheet)
         self.list_column.clear()
         self.list_column.addItems(column_names)
-        print(column_names)
 
     def select_column(self, column):
         self.selected_column = column
         self.btn_start_split.setEnabled(True)
 
     def start_split(self):
-        print('******************')
-        print(self.selected_sheet)
-        print(self.selected_column)
+        if self.xls_file.split_file(self.selected_sheet, self.selected_column, self.destination_dir):
+            QMessageBox.information(None, 'Успех', "Да ладно! у тебя получилось!")
+        else:
+            QMessageBox.information(None, 'Ошибка', "Что-то пошло не так(((")
 
 
 if __name__ == '__main__':

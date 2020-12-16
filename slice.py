@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import os
 import pandas as pd
 from logger_config import get_logger
 
 log = get_logger('Slice_XLS_logger')
+log.setLevel('DEBUG')
 path = 'data/2020.11.24 Выгрузка УК ноябрь.xlsx'
 
 
@@ -44,9 +46,10 @@ class SliceXLS:
             self.column_names = self.all_data_frame.columns
             return self.column_names
 
-    def split_file(self, selected_sheet, selected_column):
+    def split_file(self, selected_sheet, selected_column, dir_path):
         '''
         Split data to many file by selected column
+        :param dir_path: destination directory
         :param selected_sheet:
         :param selected_column:
         :return: None
@@ -56,11 +59,16 @@ class SliceXLS:
         for item in unique_data_on_column:
             filtered_data = self.all_data_frame[(self.all_data_frame[selected_column] == item)]
             out_file = item.replace('/', '_') + '.xlsx'
+            path = os.path.join(dir_path, out_file)
+            path = os.path.normpath(path)
             try:
                 log.debug('Write frame to file')
-                self.write_xls(out_file, filtered_data, selected_sheet)
+                self.write_xls(path, filtered_data, selected_sheet)
+
             except:
                 log.debug('Don\'t write frame to file')
+                return False
+        return True
 
     def write_xls(self, filename, frame, sheet_name):
         '''
